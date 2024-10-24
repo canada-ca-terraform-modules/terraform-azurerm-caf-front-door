@@ -8,7 +8,7 @@ locals {
 resource "azurerm_cdn_frontdoor_profile" "frontdoor_profile" {
   name                = local.front-door-name
   resource_group_name = local.resource_group_name
-  sku_name            = var.front_door.profile_sku
+  sku_name            = try(var.front_door.profile_sku, "Standard_AzureFrontDoor")
   tags                = var.tags
 }
 
@@ -27,16 +27,16 @@ resource "azurerm_cdn_frontdoor_origin_group" "origin_group" {
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = var.front_door.origin_group.restore_traffic_time_to_healed_or_new_endpoint_in_minutes
 
   health_probe {
-    interval_in_seconds = var.front_door.origin_group.health_probe_interval_in_seconds
-    path                = var.front_door.origin_group.health_probe_path
-    protocol            = var.front_door.origin_group.health_probe_protocol
-    request_type        = var.front_door.origin_group.health_probe_request_type
+    interval_in_seconds = try(var.front_door.origin_group.health_probe_interval_in_seconds, 240)
+    path                = try(var.front_door.origin_group.health_probe_path, "/healthProbe")
+    protocol            = try(var.front_door.origin_group.health_probe_protocol, "Https")
+    request_type        = try(var.front_door.origin_group.health_probe_request_type,"HEAD")
   }
 
   load_balancing {
-    additional_latency_in_milliseconds = var.front_door.origin_group.load_balancing_additional_latency_in_milliseconds
-    sample_size                        = var.front_door.origin_group.load_balancing_sample_size
-    successful_samples_required        = var.front_door.origin_group.load_balancing_successful_samples_required
+    additional_latency_in_milliseconds = try(var.front_door.origin_group.load_balancing_additional_latency_in_milliseconds, 0)
+    sample_size                        = try(var.front_door.origin_group.load_balancing_sample_size, 16)
+    successful_samples_required        = try(var.front_door.origin_group.load_balancing_successful_samples_required,3)
   }
 }
 
@@ -46,12 +46,12 @@ resource "azurerm_cdn_frontdoor_origin" "frontdoor_origin" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.origin_group.id
   certificate_name_check_enabled = var.front_door.origin.certificate_name_check_enabled
   host_name           = var.origin_host_name
-  http_port           = var.front_door.origin.http_port
-  https_port          = var.front_door.origin.https_port
+  http_port           = try(var.front_door.origin.http_port,80)
+  https_port          = try(var.front_door.origin.https_port, 443)
   origin_host_header = var.origin_host_name
-  enabled             = var.front_door.origin.enabled
-  priority            = var.front_door.origin.priority
-  weight              = var.front_door.origin.weight
+  enabled             = try(var.front_door.origin.enabled, true)
+  priority            = try(var.front_door.origin.priority, 2)
+  weight              = try(var.front_door.origin.weight, 50)
   dynamic "private_link" {
     for_each = try(var.front_door.origin.use_private_link.enable, false) != false ? [1] : []
     content {
@@ -81,17 +81,17 @@ resource "azurerm_cdn_frontdoor_route" "route" {
   cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.rule_set.id]
   link_to_default_domain          = false
   https_redirect_enabled = true
-  supported_protocols            = var.front_door.route.supported_protocols
-  patterns_to_match             = var.front_door.route.patterns_to_match
-  forwarding_protocol           = var.front_door.route.forwarding_protocol
-  enabled                       = var.front_door.route.enabled
+  supported_protocols            = try(var.front_door.route.supported_protocols, ["Https", "Http"])
+  patterns_to_match             = try(var.front_door.route.patterns_to_match, ["/*"])
+  forwarding_protocol           = try(var.front_door.route.forwarding_protocol, "MatchRequest")
+  enabled                       = try(var.front_door.route.enabled,false)
   dynamic "cache" {
     for_each = try(var.front_door.route.cache.enable, false) != false ? [1] : []
     content {
-              query_string_caching_behavior = var.front_door.route.cache.query_string_caching_behavior
-              query_strings=var.front_door.route.cache.query_strings
-              compression_enabled = var.front_door.route.cache.compression_enabled
-              content_types_to_compress = var.front_door.route.cache.content_types_to_compress
+              query_string_caching_behavior = try(var.front_door.route.cache.query_string_caching_behavior, "IgnoreQueryString")
+              query_strings=try(var.front_door.route.cache.query_strings, [])
+              compression_enabled = try(var.front_door.route.cache.compression_enabled, false)
+              content_types_to_compress = try(var.front_door.route.cache.content_types_to_compress, ["text/html"])
     }
   }
 
@@ -104,8 +104,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor_profile.id 
   host_name           = each.value.host_name
   tls {
-      certificate_type    = each.value.certificate_type
-      minimum_tls_version = each.value.minimum_tls_version
+      certificate_type    = try(each.value.certificate_type, "ManagedCertificate")
+      minimum_tls_version = try(each.value.minimum_tls_version, "TLS12")
     }
 }
 
@@ -119,26 +119,26 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" 
 resource "azurerm_dns_cname_record" "cname_record" {
   for_each = {
       for key, value in var.front_door.custom_domains : key => value
-      if value.internale_dns_record == true
+      if value.internal_dns_record == true
   }
   depends_on = [azurerm_cdn_frontdoor_route.route, azurerm_cdn_frontdoor_security_policy.fd_security_policy]
 
   name                = each.value.host_name
   zone_name           = var.zones[each.value.internal_dsn_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
-  ttl                 = 3600
+  ttl                 = try(each.value.ttl,3600)
   record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
 }
 
 resource "azurerm_dns_txt_record" "txt_record" {
   for_each = {
       for key, value in var.front_door.custom_domains : key => value
-      if value.internale_dns_record == true
+      if value.internal_dns_record == true
   }
   name                = join(".", ["_dnsauth", "${each.value.host_name}"])
   zone_name           = var.zones[each.value.internal_dsn_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
-  ttl                 = 3600
+  ttl                 = try(each.value.ttl,3600)
 
   record {
     value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token

@@ -56,17 +56,19 @@ front_doors ={
         custom_domains = {
             custom-domain1 = {
                 host_name  = "custom.example.com"
-                internale_dns_record = false
+                internal_dns_record = false
                 internal_dsn_zone_name = null
                 certificate_type    = "ManagedCertificate"
                 minimum_tls_version = "TLS12"
+                ttl =3600
             }
             custom-domain2 = {
                 host_name  = "www.custom.example.com"
-                internale_dns_record = true
+                internal_dns_record = true
                 internal_dsn_zone_name = "zone1"
                 certificate_type    = "ManagedCertificate"
                 minimum_tls_version = "TLS12"
+                ttl=3600
             }
         }
 
