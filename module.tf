@@ -124,7 +124,7 @@ resource "azurerm_dns_cname_record" "cname_record" {
   depends_on = [azurerm_cdn_frontdoor_route.route, azurerm_cdn_frontdoor_security_policy.fd_security_policy]
 
   name                = each.value.host_name
-  zone_name           = var.zones[each.value.internal_dsn_zone_name].name
+  zone_name           = var.zones[each.value.internal_dns_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
   ttl                 = try(each.value.ttl,3600)
   record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
@@ -136,7 +136,7 @@ resource "azurerm_dns_txt_record" "txt_record" {
       if value.internal_dns_record == true
   }
   name                = join(".", ["_dnsauth", "${each.value.host_name}"])
-  zone_name           = var.zones[each.value.internal_dsn_zone_name].name
+  zone_name           = var.zones[each.value.internal_dns_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
   ttl                 = try(each.value.ttl,3600)
 
