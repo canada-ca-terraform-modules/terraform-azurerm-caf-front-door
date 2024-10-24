@@ -79,12 +79,12 @@ resource "azurerm_cdn_frontdoor_route" "route" {
   cdn_frontdoor_origin_ids  = [azurerm_cdn_frontdoor_origin.frontdoor_origin.id]
   cdn_frontdoor_custom_domain_ids = local.custom_domain_ids
   cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.rule_set.id]
-  link_to_default_domain          = false
-  https_redirect_enabled = true
+  link_to_default_domain          = try(var.front_door.route.link_to_default_domain ,true)
+  https_redirect_enabled = try(var.front_door.route.https_redirect_enabled ,true)
   supported_protocols            = try(var.front_door.route.supported_protocols, ["Https", "Http"])
   patterns_to_match             = try(var.front_door.route.patterns_to_match, ["/*"])
   forwarding_protocol           = try(var.front_door.route.forwarding_protocol, "MatchRequest")
-  enabled                       = try(var.front_door.route.enabled,false)
+  enabled                       = try(var.front_door.route.enabled,true)
   dynamic "cache" {
     for_each = try(var.front_door.route.cache.enable, false) != false ? [1] : []
     content {
