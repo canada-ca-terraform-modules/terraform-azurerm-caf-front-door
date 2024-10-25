@@ -27,7 +27,7 @@ front_doors ={
             load_balancing_additional_latency_in_milliseconds = 0
             load_balancing_sample_size                        = 16
             load_balancing_successful_samples_required        = 3
-            backends                        = ["origin1", "origin2"]  # Reference to origin names defined in the `origins` map
+
             
         }
 
