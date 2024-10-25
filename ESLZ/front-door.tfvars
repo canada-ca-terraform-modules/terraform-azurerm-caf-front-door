@@ -339,12 +339,7 @@ front_doors ={
         #     key_vault_certificate_id = "" # required. kevault certificate id
         # }
 
-        # Tags for All Resources
-        tags = {
-            environment = "dev"
-            project     = "example-project"
-            owner       = "team-azure"
-        }
+
     }
 
 
