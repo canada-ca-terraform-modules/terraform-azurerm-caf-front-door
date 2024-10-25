@@ -116,7 +116,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
 resource "azurerm_cdn_frontdoor_custom_domain" "local_custom_domain" {
   name                = "${local.front-door-name}-local"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor_profile.id 
-  host_name           =  var.zones[try(var.front_door.local_dns.internal_dns_zone_name, "zone1")].name
+  host_name           =  join ("." ,[ "${try(var.front_door.local_dns.local_dns_record_name, "www")}", "${var.zones[try(var.front_door.local_dns.internal_dns_zone_name, "zone1")].name}"])
   tls {
       certificate_type    = try(var.front_door.local_dns.certificate_type, "ManagedCertificate")
       minimum_tls_version = try(var.front_door.local_dns.minimum_tls_version, "TLS12")
@@ -148,7 +148,7 @@ resource "azurerm_dns_cname_record" "cname_record" {
 
 resource "azurerm_dns_txt_record" "txt_record" {
 
-  name                = join(".", ["_dnsauth", "${var.zones[var.front_door.local_dns.local_dns_zone_name].name}"])
+  name                = join(".", ["_dnsauth", "${var.front_door.local_dns.local_dns_record_name}"])
   zone_name           = var.zones[var.front_door.local_dns.local_dns_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
   ttl                 = try(var.front_door.local_dns.ttl,3600)
