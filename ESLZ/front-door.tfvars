@@ -8,9 +8,11 @@ front_doors ={
         profile_name = "example-frontdoor-profile"
         profile_sku  = "Premium_AzureFrontDoor"  # Options: Standard_AzureFrontDoor, Premium_AzureFrontDoor
 
-        dns={
-                internal_dns_zone_name ="zone1"
-                internal_dns_record_name = "www"
+        local_dns={
+                local_dns_zone_name ="zone1"
+                local_dns_record_name = "www"
+                certificate_type    = "ManagedCertificate"
+                minimum_tls_version = "TLS12"
                 ttl=3600
         }
         # Front Door Origin Groups

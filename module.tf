@@ -1,6 +1,9 @@
 
 locals {
-  custom_domain_ids = values(azurerm_cdn_frontdoor_custom_domain.custom_domain)[*].id
+    custom_domain_ids = concat(
+      values(azurerm_cdn_frontdoor_custom_domain.custom_domain)[*].id,
+      [azurerm_cdn_frontdoor_custom_domain.local_custom_domain.id]
+  )
 }
 
 
@@ -109,6 +112,23 @@ resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
     }
 }
 
+# Azure Front Door local Custom Domains
+resource "azurerm_cdn_frontdoor_custom_domain" "local_custom_domain" {
+  name                = "${local.front-door-name}-local"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor_profile.id 
+  host_name           =  var.zones[try(var.front_door.local_dns.internal_dns_zone_name, "zone1")].name
+  tls {
+      certificate_type    = try(var.front_door.local_dns.certificate_type, "ManagedCertificate")
+      minimum_tls_version = try(var.front_door.local_dns.minimum_tls_version, "TLS12")
+    }
+}
+
+# Azure Front Door Custom Domain Association
+resource "azurerm_cdn_frontdoor_custom_domain_association" "local_domain_association" {
+  cdn_frontdoor_custom_domain_id        = azurerm_cdn_frontdoor_custom_domain.local_custom_domain.id
+  cdn_frontdoor_route_ids       = [azurerm_cdn_frontdoor_route.route.id]
+}
+
 # Azure Front Door Custom Domain Association
 resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" {
   for_each            = var.front_door.custom_domains
@@ -119,24 +139,24 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" 
 resource "azurerm_dns_cname_record" "cname_record" {
   depends_on = [azurerm_cdn_frontdoor_route.route, azurerm_cdn_frontdoor_security_policy.fd_security_policy]
 
-  name                = try(var.front_door.dns.internal_dns_record_name, "www")
-  zone_name           = var.zones[try(var.front_door.dns.internal_dns_zone_name, "zone1")].name
+  name                = try(var.front_door.local_dns.local_dns_record_name, "www")
+  zone_name           = var.zones[try(var.front_door.local_dns.local_dns_zone_name, "zone1")].name
   resource_group_name = var.resource_groups["DNS"].name
-  ttl                 = try(var.front_door.dns.ttl,3600)
+  ttl                 = try(var.front_door.local_dns.ttl,3600)
   record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
 }
 
-# resource "azurerm_dns_txt_record" "txt_record" {
+resource "azurerm_dns_txt_record" "txt_record" {
 
-#   name                = join(".", ["_dnsauth", "${var.front_door.dns_record_name}"])
-#   zone_name           = var.zones[var.front_door.azure_dns_zone_name].name
-#   resource_group_name = var.resource_groups["DNS"].name
-#   ttl                 = try(each.value.ttl,3600)
+  name                = join(".", ["_dnsauth", "${var.zones[var.front_door.local_dns.local_dns_zone_name].name}"])
+  zone_name           = var.zones[var.front_door.local_dns.local_dns_zone_name].name
+  resource_group_name = var.resource_groups["DNS"].name
+  ttl                 = try(var.front_door.local_dns.ttl,3600)
 
-#   record {
-#     value = azurerm_cdn_frontdoor_profile.frontdoor_profile.do
-#   }
-# }
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.local_custom_domain.validation_token
+  }
+}
 
 
 # Azure Front Door Rule Sets
