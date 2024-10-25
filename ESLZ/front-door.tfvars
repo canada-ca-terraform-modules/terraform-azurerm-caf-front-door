@@ -8,7 +8,11 @@ front_doors ={
         profile_name = "example-frontdoor-profile"
         profile_sku  = "Premium_AzureFrontDoor"  # Options: Standard_AzureFrontDoor, Premium_AzureFrontDoor
 
-
+        dns={
+                internal_dns_zone_name ="zone1"
+                internal_dns_record_name = "www"
+                ttl=3600
+        }
         # Front Door Origin Groups
         origin_group = {
            
@@ -56,16 +60,12 @@ front_doors ={
         custom_domains = {
             custom-domain1 = {
                 host_name  = "custom.example.com"
-                internal_dns_record = false
-                internal_dns_zone_name = null
                 certificate_type    = "ManagedCertificate"
                 minimum_tls_version = "TLS12"
                 ttl =3600
             }
             custom-domain2 = {
                 host_name  = "www.custom.example.com"
-                internal_dns_record = true
-                internal_dns_zone_name = "zone1"
                 certificate_type    = "ManagedCertificate"
                 minimum_tls_version = "TLS12"
                 ttl=3600

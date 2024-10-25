@@ -117,33 +117,26 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" 
 }
 
 resource "azurerm_dns_cname_record" "cname_record" {
-  for_each = {
-      for key, value in var.front_door.custom_domains : key => value
-      if value.internal_dns_record == true
-  }
   depends_on = [azurerm_cdn_frontdoor_route.route, azurerm_cdn_frontdoor_security_policy.fd_security_policy]
 
-  name                = each.value.host_name
-  zone_name           = var.zones[each.value.internal_dns_zone_name].name
+  name                = try(var.front_door.dns.internal_dns_record_name, "www")
+  zone_name           = var.zones[try(var.front_door.dns.internal_dns_zone_name, "zone1")].name
   resource_group_name = var.resource_groups["DNS"].name
-  ttl                 = try(each.value.ttl,3600)
+  ttl                 = try(var.front_door.dns.ttl,3600)
   record              = azurerm_cdn_frontdoor_endpoint.endpoint.host_name
 }
 
-resource "azurerm_dns_txt_record" "txt_record" {
-  for_each = {
-      for key, value in var.front_door.custom_domains : key => value
-      if value.internal_dns_record == true
-  }
-  name                = join(".", ["_dnsauth", "${each.value.host_name}"])
-  zone_name           = var.zones[each.value.internal_dns_zone_name].name
-  resource_group_name = var.resource_groups["DNS"].name
-  ttl                 = try(each.value.ttl,3600)
+# resource "azurerm_dns_txt_record" "txt_record" {
 
-  record {
-    value = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].validation_token
-  }
-}
+#   name                = join(".", ["_dnsauth", "${var.front_door.dns_record_name}"])
+#   zone_name           = var.zones[var.front_door.azure_dns_zone_name].name
+#   resource_group_name = var.resource_groups["DNS"].name
+#   ttl                 = try(each.value.ttl,3600)
+
+#   record {
+#     value = azurerm_cdn_frontdoor_profile.frontdoor_profile.do
+#   }
+# }
 
 
 # Azure Front Door Rule Sets
