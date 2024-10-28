@@ -9,6 +9,7 @@ front_doors ={
         profile_sku  = "Premium_AzureFrontDoor"  # Options: Standard_AzureFrontDoor, Premium_AzureFrontDoor
 
         local_dns={
+                add_local_dns_record = true
                 local_dns_zone_name ="zone1"
                 local_dns_record_name = "www"
                 certificate_type    = "ManagedCertificate"

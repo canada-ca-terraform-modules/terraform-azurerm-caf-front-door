@@ -138,7 +138,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" 
 
 resource "azurerm_dns_cname_record" "cname_record" {
   depends_on = [azurerm_cdn_frontdoor_route.route, azurerm_cdn_frontdoor_security_policy.fd_security_policy]
-
+  count = try(var.front_door.local_dns.add_local_dns_record , false) != false ? 1 : 0
   name                = try(var.front_door.local_dns.local_dns_record_name, "www")
   zone_name           = var.zones[try(var.front_door.local_dns.local_dns_zone_name, "zone1")].name
   resource_group_name = var.resource_groups["DNS"].name
@@ -147,7 +147,7 @@ resource "azurerm_dns_cname_record" "cname_record" {
 }
 
 resource "azurerm_dns_txt_record" "txt_record" {
-
+  count = try(var.front_door.local_dns.add_local_dns_record , false) != false ? 1 : 0
   name                = join(".", ["_dnsauth", "${var.front_door.local_dns.local_dns_record_name}"])
   zone_name           = var.zones[var.front_door.local_dns.local_dns_zone_name].name
   resource_group_name = var.resource_groups["DNS"].name
