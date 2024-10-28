@@ -52,5 +52,9 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+|------|-------------|
+| <a name="output_front-door-id"></a> [front-door-id](#output\_front-door-id) | Outputs the front door profile ID |
+| <a name="output_front-door-name"></a> [front-door-name](#output\_front-door-name) | Outputs the front door profile name |
+| <a name="output_front-door-object"></a> [front-door-object](#output\_front-door-object) | Outputs the entire front door object |
 <!-- END_TF_DOCS -->
