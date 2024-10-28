@@ -384,6 +384,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "fd_firewall_policy" {
     redirect_url                      = var.front_door.firewall_policy.redirect_url
     custom_block_response_status_code = var.front_door.firewall_policy.custom_block_response_status_code
     custom_block_response_body        = var.front_door.firewall_policy.custom_block_response_body
+    tags = var.tags
 }
 
 
