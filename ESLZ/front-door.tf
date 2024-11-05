@@ -6,7 +6,7 @@ variable "front_doors" {
 
 module "front_door" {
     for_each = var.front_doors
-    source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-front-door.git"
+    source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-front-door.git?ref=v1.0.1"
     env = var.env
     group = var.group
     project = var.project
