@@ -102,7 +102,7 @@ resource "azurerm_cdn_frontdoor_route" "route" {
 
 # Azure Front Door Custom Domains
 resource "azurerm_cdn_frontdoor_custom_domain" "custom_domain" {
-  for_each            = var.front_door.custom_domains
+  for_each            = try(var.front_door.custom_domains, {})
   name                = "${local.front-door-name}-${each.key}"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor_profile.id 
   host_name           = each.value.host_name
@@ -131,7 +131,7 @@ resource "azurerm_cdn_frontdoor_custom_domain_association" "local_domain_associa
 
 # Azure Front Door Custom Domain Association
 resource "azurerm_cdn_frontdoor_custom_domain_association" "domain_association" {
-  for_each            = var.front_door.custom_domains
+  for_each            = try(var.front_door.custom_domains, {})
   cdn_frontdoor_custom_domain_id        = azurerm_cdn_frontdoor_custom_domain.custom_domain[each.key].id
   cdn_frontdoor_route_ids       = [azurerm_cdn_frontdoor_route.route.id]
 }
@@ -390,6 +390,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "fd_firewall_policy" {
 
 
 resource "azurerm_cdn_frontdoor_security_policy" "fd_security_policy" {
+  count = try(var.front_door.custom_domains, {}) != {} ? 1 : 0
   name                     = "${local.rule_set-name}securitypolicy"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor_profile.id
 

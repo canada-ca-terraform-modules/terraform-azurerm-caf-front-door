@@ -1,12 +1,13 @@
 variable "front_doors" {
   type = any
   default = {}
-  description = "Value for run books. This is a collection of values as defined in runbook.tfvars"
+  description = "Front Doors to deploy"
 }
 
 module "front_door" {
+    source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-front-door.git?ref=v1.0.2"
+
     for_each = var.front_doors
-    source = "github.com/canada-ca-terraform-modules/terraform-azurerm-caf-front-door.git?ref=v1.0.1"
     env = var.env
     group = var.group
     project = var.project
@@ -15,4 +16,5 @@ module "front_door" {
     resource_groups = local.resource_groups_all
     zones = local.zones
     origin_host_name             = "example2.example.com"
+    tags = var.tags
 }
