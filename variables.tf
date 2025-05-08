@@ -13,29 +13,22 @@ variable "tags" {
 variable "env" {
   description = "(Required) 4 character string defining the environment name prefix for the VM"
   type = string
-  default =  "dev"
 }
 
 variable "group" {
   description = "(Required) Character string defining the group for the target subscription"
   type = string
-  default = "test"
 }
 
 variable "project" {
   description = "(Required) Character string defining the project for the target subscription"
   type = string
-  default = "test"
 }
 
 variable "userDefinedString" {
   description = "(Required) User defined portion value for the name of the VM."
   type = string
-  default= "test"
 }
-
-
-
 
 variable "front_door" {
   description = "(Required) front door configuration."

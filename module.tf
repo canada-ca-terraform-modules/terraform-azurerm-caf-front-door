@@ -9,7 +9,7 @@ locals {
 
 # Azure Front Door Profile
 resource "azurerm_cdn_frontdoor_profile" "frontdoor_profile" {
-  name                = local.front-door-name
+  name                = "${local.front-door-name}-fd"
   resource_group_name = local.resource_group_name
   sku_name            = try(var.front_door.profile_sku, "Standard_AzureFrontDoor")
   tags                = var.tags
